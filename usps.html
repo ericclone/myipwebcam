@@ -1,0 +1,68 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <script type="text/javascript">
+    function loadXMLDoc() {
+      console.log("function called");
+        var xmlhttp = new XMLHttpRequest();
+        var days_box = document.getElementById("days");
+        days_box.innerText = "Querying USPS api...";
+
+        xmlhttp.onreadystatechange = function() {
+            if (xmlhttp.readyState == XMLHttpRequest.DONE ) {
+               if (xmlhttp.status == 200) {
+                // var xmlResult = ( new window.DOMParser() ).parseFromString(xmlhttp.responseText, "text/xml");
+                var xmlResult = xmlhttp.responseXML;
+                if (xmlResult.getElementsByTagName("Error").length == 0) {
+                  var n_days = xmlResult.getElementsByTagName("Days")[0].childNodes[0].nodeValue;
+                  days_box.innerText = "Estimated delivery: " + n_days + " days";
+                } else {
+                  days_box.innerText = "Error receiving data from Server\n" + xmlhttp.responseText;
+                }
+               }
+               else if (xmlhttp.status == 400) {
+                  alert('There was an error 400');
+               }
+               else {
+                   alert('something else other than 200 was returned');
+               }
+            }
+        };
+
+        var src = document.getElementById("src").value.trim();
+        var dest = document.getElementById("dest").value.trim();
+
+        var urlStr = "http://production.shippingapis.com/ShippingAPI.dll?API=PriorityMail&XML="
+
+        var xmlStr = "<PriorityMailRequest USERID='887SANJO2274'>" +
+                            "<OriginZip>" + src + "</OriginZip>" +
+                            "<DestinationZip>" + dest + "</DestinationZip>" +
+                            "</PriorityMailRequest>";
+        console.log(urlStr + xmlStr);
+        xmlhttp.open("GET", urlStr + xmlStr, true);
+        xmlhttp.send();
+    }
+
+    function registerEnterKey() {
+      document.onkeyup = function(e) {
+        if (e.keyCode == 13) {
+          loadXMLDoc();
+        }
+      }
+      loadXMLDoc();
+    }
+  </script>
+  <title>USPS PriorityMail Delivery Estimate</title>
+</head>
+  <body onload=registerEnterKey()>
+  <h2>USPS PriorityMail Delivery Estimate</h2>
+  <form>
+  <label>Origin Zipcode</label><br/>
+  <input type=text id="src" value="85335" /><br/>
+  <label>Destination Zipcode</label><br/>
+  <input type=text id="dest" value="95112" /><br/>
+  </form>
+  <button onclick=loadXMLDoc()>Send</button>
+  <div id="days"></div>
+  </body>
+</html>
